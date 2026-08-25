@@ -1,0 +1,5 @@
+interface:
+  display_name: "Publish iOS Phone App"
+  short_description: "建立客戶授權、UDID 登記與 iOS Ad Hoc 安裝入口"
+  brand_color: "#E6322F"
+  default_prompt: "Use $publish-ios-phone-app to publish this existing iOS app through a branded customer-consent installation link."

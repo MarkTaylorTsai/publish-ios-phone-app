@@ -8,6 +8,7 @@
   "bundle_version": "1",
   "marketing_version": "1.0.0",
   "base_url": "https://install.company.example",
+  "brand_color": "#E6322F",
   "listen_host": "127.0.0.1",
   "listen_port": 8877,
   "token_ttl_minutes": 1440,

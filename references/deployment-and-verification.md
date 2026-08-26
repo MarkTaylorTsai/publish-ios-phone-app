@@ -51,9 +51,10 @@ Apple's deployment guide describes HTTPS manifest installation using `itms-servi
 - Entry without `access` is rejected; valid invite token works; rate limit works.
 - LINE user-agent renders Safari/copy-link guidance and does not expose registration actions inside LINE.
 - Install button stores build-and-enrollment-specific clicked state, disables immediately, and says to return to the home screen.
+- The first install click reveals the complete Developer Mode sequence and the missing-switch Mac/Xcode pairing guidance; revisiting the same build/enrollment restores the revealed state.
 
 ### Real iPhone
 
-Simulator can verify web layout and normal app UI only. A permitted physical iPhone must verify profile download, Settings installation, Apple CMS callback, UDID registration, provisioning inclusion, `itms-services` confirmation, home-screen download, launch, login/logout, navigation, camera/QR, printing, and any hardware-dependent flows.
+Simulator can verify web layout and normal app UI only. A permitted physical iPhone must verify profile download, Settings installation, Apple CMS callback, UDID registration, provisioning inclusion, `itms-services` confirmation, home-screen download, Developer Mode enablement and restart, launch, login/logout, navigation, camera/QR, printing, and any hardware-dependent flows.
 
 Stop after the first unexplained Apple registration/export failure, preserve diagnostic logs without raw secrets, repair the cause, and rerun the gates. Do not loop external registrations or exports indefinitely.

@@ -17,7 +17,17 @@ from pathlib import Path
 
 def load_bytes(location: str) -> bytes:
     if location.startswith(("https://", "http://")):
-        with urllib.request.urlopen(location, timeout=60) as response:
+        request = urllib.request.Request(
+            location,
+            headers={
+                # Some production origins enable managed bot protection that
+                # rejects Python's default urllib user agent. Validate using an
+                # iPhone-like client, matching the actual OTA installation path.
+                "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148",
+                "Accept": "*/*",
+            },
+        )
+        with urllib.request.urlopen(request, timeout=60) as response:
             return response.read()
     return Path(location).expanduser().read_bytes()
 

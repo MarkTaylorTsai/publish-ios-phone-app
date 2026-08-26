@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import html
 import json
+import re
 
 
 STYLE = """
@@ -11,9 +12,16 @@ STYLE = """
 """
 
 
+def style_for(config: dict) -> str:
+    accent = str(config.get("brand_color", "#e6322f"))
+    if not re.fullmatch(r"#[0-9A-Fa-f]{6}", accent):
+        accent = "#e6322f"
+    return STYLE.replace("--red:#e6322f", f"--red:{accent}")
+
+
 def shell(config: dict, title: str, body: str, *, script: str = "") -> str:
     footer = f"{html.escape(config['organization'])} · {html.escape(config['app_name'])}"
-    return f"""<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="format-detection" content="telephone=no"><title>{html.escape(title)}</title><style>{STYLE}</style></head><body>{body}<div class="footer">{footer}</div>{script}</body></html>"""
+    return f"""<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="format-detection" content="telephone=no"><title>{html.escape(title)}</title><style>{style_for(config)}</style></head><body>{body}<div class="footer">{footer}</div>{script}</body></html>"""
 
 
 def landing_page(config: dict, access: str) -> str:
@@ -74,11 +82,11 @@ def enrollment_page(config: dict, token: str, record: dict) -> str:
     heading, description, klass = status_copy.get(status, status_copy["collected"])
     ready = status == "ready"
     app_short = html.escape(config["app_short_name"])
-    controls = (f'<a id="install-app" class="button" href="itms-services://?action=download-manifest&amp;url={html.escape(config["base_url"] + "/manifest.plist")}">安裝 {app_short}（只需點一次）</a><div id="install-sent" class="status ok hidden"><b>已開始下載，請回到手機主畫面</b><br>請查看「{app_short}」圖示是否已開始下載。下載可能需要 1～2 分鐘，請勿重複點擊安裝。</div>' if ready else f'<a class="button secondary" href="/e/{token}/profile.mobileconfig">下載裝置登記描述檔</a>')
+    controls = (f'<a id="install-app" class="button" href="itms-services://?action=download-manifest&amp;url={html.escape(config["base_url"] + "/manifest.plist")}">安裝 {app_short}（只需點一次）</a><div id="install-sent" class="status ok hidden"><b>已開始下載，請回到手機主畫面</b><br>請查看「{app_short}」圖示是否已開始下載。下載可能需要 1～2 分鐘，請勿重複點擊安裝。安裝完成後，請依照下方教學開啟「開發者模式」。</div>' if ready else f'<a class="button secondary" href="/e/{token}/profile.mobileconfig">下載裝置登記描述檔</a>')
     if status in {"collected", "registering", "exporting"}:
         controls = '<button class="button disabled" type="button">處理中，請稍候</button>'
     if ready:
-        instructions = f"""<section class="guide" aria-labelledby="app-install-guide"><h2 id="app-install-guide">App 安裝只要點一次</h2><ol><li>點上方 <b>「安裝 {app_short}（只需點一次）」</b>。</li><li>iPhone 跳出確認視窗時點 <b>「安裝」</b>。</li><li>回到 iPhone <b>主畫面</b>，找到「{app_short}」圖示並等待下載完成；不需要回到網頁重複點擊。</li></ol><div class="fallback"><b>如何回到主畫面？</b><br>從螢幕最下方向上滑，或按一下有主畫面按鈕機型的 Home 鍵。App 圖示下載期間可能暫時呈現灰色。</div></section>"""
+        instructions = f"""<section class="guide" aria-labelledby="app-install-guide"><h2 id="app-install-guide">App 安裝只要點一次</h2><ol><li>點上方 <b>「安裝 {app_short}（只需點一次）」</b>。</li><li>iPhone 跳出確認視窗時點 <b>「安裝」</b>。</li><li>回到 iPhone <b>主畫面</b>，找到「{app_short}」圖示並等待下載完成；不需要回到網頁重複點擊。</li></ol><div class="fallback"><b>如何回到主畫面？</b><br>從螢幕最下方向上滑，或按一下有主畫面按鈕機型的 Home 鍵。App 圖示下載期間可能暫時呈現灰色。</div></section><section id="developer-mode-guide" class="guide hidden" aria-labelledby="developer-mode-title"><h2 id="developer-mode-title">安裝後：開啟「開發者模式」</h2><div class="status warn"><b>Apple 要求手動安裝的 IPA App 必須先開啟開發者模式，才能正常打開。</b></div><ol><li>先回到主畫面，等待「{app_short}」下載完成，接著<b>點開 App 一次</b>。</li><li>打開 iPhone <b>「設定」→「隱私權與安全性」</b>。</li><li>往下滑到「安全性」區域，點 <b>「開發者模式」</b>，開啟右側開關。</li><li>在警告視窗點 <b>「重新啟動」</b>。</li><li>iPhone 重新開機並解鎖後，在確認視窗點 <b>「開啟」／「Enable」</b>，再輸入手機解鎖密碼。</li><li>回到主畫面，重新打開「{app_short}」。</li></ol><div class="fallback"><b>設定裡看不到「開發者模式」？</b><br>先確認 App 已安裝完成並嘗試打開一次。若仍沒有此選項，需要先用傳輸線把 iPhone 連到 Mac、在手機點「信任」，並開啟 Xcode 的 <b>Window → Devices and Simulators</b> 完成一次配對；再回到「設定 → 隱私權與安全性」查看。<br><br><a href="https://developer.apple.com/documentation/xcode/enabling-developer-mode-on-a-device" target="_blank" rel="noopener">查看 Apple 官方開啟方式</a></div></section>"""
     else:
         instructions = f"""<section class="guide" aria-labelledby="settings-guide"><h2 id="settings-guide">下載後，請照這條路徑操作</h2><ol><li>Safari 跳出「此網站正嘗試下載設定描述檔」時，點 <b>「允許」</b>，看到「描述檔已下載」後點「關閉」。</li><li>離開 Safari，打開 iPhone 灰色齒輪圖示的 <b>「設定」App</b>。</li><li>在設定首頁、Apple 帳號姓名的下方，點 <b>「已下載描述檔」</b>。</li><li>進入「{html.escape(config['service_name'])}」後，點右上角 <b>「安裝」</b>，輸入手機解鎖密碼，再點一次「安裝」。</li><li>看到安裝完成後點 <b>「完成」</b>。系統通常會自動回到本頁；若沒有，請自行打開 Safari，回到剛才的頁面。</li></ol><div class="fallback"><b>設定首頁沒看到「已下載描述檔」？</b><br>請改走：<b>設定 → 一般 → VPN 與裝置管理</b>（舊版 iOS 可能顯示「描述檔與裝置管理」）→「{html.escape(config['service_name'])}」→右上角「安裝」。<br><br>在「VPN 與裝置管理」也找不到時，回到 Safari 再按一次「下載裝置登記描述檔」，並確認有點到「允許」。</div></section>
 <div class="steps"><div class="step"><div class="n">1</div><div><b>下載描述檔</b><span>Safari 詢問時點「允許」。</span></div></div><div class="step"><div class="n">2</div><div><b>在設定完成安裝</b><span>依照上方黃色區塊操作，安裝名稱是「{html.escape(config['service_name'])}」。</span></div></div><div class="step"><div class="n">3</div><div><b>回到 Safari</b><span>等待頁面出現「安裝 {app_short}」按鈕。</span></div></div></div>"""
@@ -92,6 +100,7 @@ def enrollment_page(config: dict, token: str, record: dict) -> str:
         page_script = f"""<script>
 const installButton=document.getElementById('install-app');
 const installNotice=document.getElementById('install-sent');
+const developerModeGuide=document.getElementById('developer-mode-guide');
 const installStateKey={json.dumps('ios-install-clicked:' + config['bundle_id'] + ':' + token + ':' + str(config['bundle_version']))};
 function markInstallSent(){{
   installButton.classList.add('disabled');
@@ -99,6 +108,7 @@ function markInstallSent(){{
   installButton.removeAttribute('href');
   installButton.textContent='已開始下載，請回到手機主畫面';
   installNotice.classList.remove('hidden');
+  developerModeGuide.classList.remove('hidden');
 }}
 try{{if(localStorage.getItem(installStateKey)==='1')markInstallSent();}}catch(e){{}}
 installButton.addEventListener('click',event=>{{

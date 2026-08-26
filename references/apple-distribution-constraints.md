@@ -11,6 +11,21 @@ Ad Hoc distribution is appropriate for a finite list of registered devices. Appl
 
 Creating an Ad Hoc profile requires an explicit App ID, a distribution certificate, and selected registered devices. Apple documents Account Holder or Admin access for creating that profile. Verify the active account's role rather than inferring permission from possession of source code.
 
+## Developer Mode is required
+
+Apple states that every time an `.ipa`-based app runs on an iOS device, Developer Mode must be enabled. The customer-facing installer must therefore reveal these instructions immediately after the install button is clicked:
+
+1. Wait for the app to finish downloading and try to open it once.
+2. Open **Settings → Privacy & Security → Developer Mode**.
+3. Turn the switch on and tap **Restart**.
+4. After restart, unlock the iPhone, tap **Enable**, and enter the device passcode.
+5. Reopen the installed app.
+
+Apple also notes that Developer Mode appears in Settings only after pairing has been initiated or the iPhone was previously paired to a Mac. If the switch is missing, instruct the customer to connect the unlocked iPhone to a Mac, tap **Trust**, and open Xcode's **Window → Devices and Simulators** once before checking Settings again.
+
+- Apple: [Distributing your app to registered devices](https://developer.apple.com/documentation/xcode/distributing-your-app-to-registered-devices)
+- Apple: [Enabling Developer Mode on a device](https://developer.apple.com/documentation/xcode/enabling-developer-mode-on-a-device)
+
 ## Automated registration
 
 The installer template uses the App Store Connect API to look up and register a device, then invokes Xcode to re-export the existing archive so the resulting provisioning profile includes the device.

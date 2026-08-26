@@ -125,6 +125,7 @@ def main() -> int:
         "bundle_version": str(args.bundle_version),
         "marketing_version": args.marketing_version,
         "base_url": args.base_url,
+        "brand_color": "#{:02X}{:02X}{:02X}".format(*args.brand_color),
         "listen_port": args.listen_port,
         "token_ttl_minutes": args.token_ttl_minutes,
         "data_retention_days": args.data_retention_days,

@@ -160,6 +160,10 @@ class TemplateTests(unittest.TestCase):
             "aria-disabled",
             "removeAttribute('href')",
             "window.location.href=destination",
+            'id="developer-mode-guide" class="guide hidden"',
+            "developerModeGuide.classList.remove('hidden')",
+            "設定」→「隱私權與安全性",
+            "Window → Devices and Simulators",
             f"ios-install-clicked:{self.config['bundle_id']}:{'A' * 43}:{self.config['bundle_version']}",
         ):
             self.assertIn(text, page)

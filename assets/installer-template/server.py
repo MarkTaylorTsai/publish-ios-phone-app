@@ -43,6 +43,8 @@ TOKEN_RE = re.compile(r"^[A-Za-z0-9_-]{32,80}$")
 BUILD_LOCK = threading.Lock()
 RATE_LOCK = threading.Lock()
 START_RATE: dict[str, list[float]] = {}
+START_RATE_LIMIT_COUNT = max(1, int(CONFIG.get("start_rate_limit_count", 100)))
+START_RATE_WINDOW_SECONDS = max(1, int(CONFIG.get("start_rate_window_seconds", 600)))
 
 
 def load_dotenv() -> dict[str, str]:
@@ -174,10 +176,10 @@ def public_record(record: dict) -> dict:
 
 
 def allow_start(ip: str) -> bool:
-    cutoff = time.time() - 600
+    cutoff = time.time() - START_RATE_WINDOW_SECONDS
     with RATE_LOCK:
         recent = [stamp for stamp in START_RATE.get(ip, []) if stamp > cutoff]
-        if len(recent) >= 5:
+        if len(recent) >= START_RATE_LIMIT_COUNT:
             START_RATE[ip] = recent
             return False
         recent.append(time.time())

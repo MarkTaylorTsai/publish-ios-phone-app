@@ -10,7 +10,7 @@ Customers can:
 4. wait while the device is registered and the archive is re-exported;
 5. install the verified IPA over the air.
 
-The template includes App Store Connect device registration, encrypted UDID storage, signed Profile Service payloads, CMS/challenge validation, serialized Xcode export, OTA manifest generation, LINE-to-Safari guidance, one-click install state, retention cleanup, and release validation.
+The template includes App Store Connect device registration, encrypted UDID storage, signed Profile Service payloads, CMS/challenge validation, serialized Xcode export, OTA manifest generation, LINE-to-Safari guidance, one-click install state, retention cleanup, configurable link-creation rate limits (default: 100 requests per source IP per 10 minutes), and release validation.
 
 ## Use with any agent
 

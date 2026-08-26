@@ -177,6 +177,22 @@ class TemplateTests(unittest.TestCase):
         self.assertFalse(server.portal_access_allowed("wrong-token"))
 
 
+class RateLimitTests(unittest.TestCase):
+    def setUp(self):
+        server.START_RATE.clear()
+
+    def tearDown(self):
+        server.START_RATE.clear()
+
+    def test_start_link_limit_allows_one_hundred_requests_per_window(self):
+        self.assertEqual(server.START_RATE_LIMIT_COUNT, 100)
+        self.assertEqual(server.START_RATE_WINDOW_SECONDS, 600)
+        with mock.patch.object(server.time, "time", return_value=1_000.0):
+            for _ in range(100):
+                self.assertTrue(server.allow_start("203.0.113.10"))
+            self.assertFalse(server.allow_start("203.0.113.10"))
+
+
 class JWTTests(unittest.TestCase):
     def test_der_signature_conversion(self):
         r = bytes.fromhex("01" * 32)

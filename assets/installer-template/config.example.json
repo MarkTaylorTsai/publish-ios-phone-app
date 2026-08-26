@@ -12,6 +12,8 @@
   "listen_host": "127.0.0.1",
   "listen_port": 8877,
   "token_ttl_minutes": 1440,
+  "start_rate_limit_count": 100,
+  "start_rate_window_seconds": 600,
   "data_retention_days": 30,
   "profile_identifier_prefix": "com.company.app.enrollment",
   "profile_sign_identity": "",

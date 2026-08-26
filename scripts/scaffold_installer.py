@@ -83,6 +83,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--brand-color", default="#E6322F", type=color)
     parser.add_argument("--listen-port", default=8877, type=int)
     parser.add_argument("--token-ttl-minutes", default=1440, type=int)
+    parser.add_argument("--start-rate-limit-count", default=100, type=int)
+    parser.add_argument("--start-rate-window-seconds", default=600, type=int)
     parser.add_argument("--data-retention-days", default=30, type=int)
     parser.add_argument("--profile-sign-identity", default="")
     parser.add_argument("--profile-sign-certificate-path", default="")
@@ -128,6 +130,8 @@ def main() -> int:
         "brand_color": "#{:02X}{:02X}{:02X}".format(*args.brand_color),
         "listen_port": args.listen_port,
         "token_ttl_minutes": args.token_ttl_minutes,
+        "start_rate_limit_count": args.start_rate_limit_count,
+        "start_rate_window_seconds": args.start_rate_window_seconds,
         "data_retention_days": args.data_retention_days,
         "profile_identifier_prefix": args.bundle_id + ".enrollment",
         "profile_filename": ipa_filename.removesuffix(".ipa") + "-device-registration.mobileconfig",

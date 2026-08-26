@@ -44,7 +44,9 @@ Run the workflow autonomously from inspection through deployment. Keep progress 
      --ipa-path /ABSOLUTE/PATH/App.ipa \
      --export-options-path /ABSOLUTE/PATH/ExportOptions-AdHoc.plist \
      --icon-57 /ABSOLUTE/PATH/icon-57.png \
-     --icon-512 /ABSOLUTE/PATH/icon-512.png
+     --icon-512 /ABSOLUTE/PATH/icon-512.png \
+     --start-rate-limit-count 100 \
+     --start-rate-window-seconds 600
    ```
 
 4. Fill the generated `.env` with App Store Connect API values. Configure one supported CMS-signing mode for the `.mobileconfig`: either a keychain identity in `profile_sign_identity`, or the certificate, chain, and private-key paths in `config.json`. Never commit `.env`, `.p8`, private keys, enrollment databases, or `installer-link.txt`.
@@ -68,6 +70,7 @@ Run the workflow autonomously from inspection through deployment. Keep progress 
 
 - Request only `UDID`, `PRODUCT`, and `VERSION`; verify the signed CMS chain and per-enrollment challenge before accepting them.
 - Require a random portal access token and a separate random, expiring enrollment token. Rate-limit creation; never expose an unrestricted `/start` endpoint.
+- Default the protected link-creation endpoint to 100 requests per source IP in a 10-minute window. Keep both the count and window configurable for deployments with different traffic patterns.
 - Encrypt raw UDIDs at rest, log only a truncated hash, serialize device registration/re-export, and delete enrollment data at the disclosed retention deadline.
 - Manifest bundle ID/build must equal the embedded app metadata. The IPA URL must be HTTPS and served as `application/octet-stream`; the manifest must use a valid plist MIME type. Link through `itms-services`, not directly to the IPA.
 - A newly registered device is installable only after the exported IPA's embedded Ad Hoc provisioning profile includes that UDID. Never mark an enrollment ready merely because the API registration call succeeded.

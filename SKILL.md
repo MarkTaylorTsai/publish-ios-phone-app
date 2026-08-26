@@ -33,7 +33,8 @@ Run the workflow autonomously from inspection through deployment. Keep progress 
 3. Scaffold the portal from the bundled, tested template:
 
    ```bash
-   python3 "$HOME/.codex/skills/publish-ios-phone-app/scripts/scaffold_installer.py" \
+   SKILL_DIR=/ABSOLUTE/PATH/TO/publish-ios-phone-app
+   python3 "$SKILL_DIR/scripts/scaffold_installer.py" \
      --output /ABSOLUTE/PATH/installer \
      --app-name "APP_NAME" --app-short-name "APP_SHORT_NAME" \
      --organization "COMPANY_NAME" --bundle-id "BUNDLE_ID" \
@@ -52,7 +53,8 @@ Run the workflow autonomously from inspection through deployment. Keep progress 
 7. Run the release validator, first locally and then against the public manifest/IPA:
 
    ```bash
-   python3 "$HOME/.codex/skills/publish-ios-phone-app/scripts/validate_release.py" \
+   SKILL_DIR=/ABSOLUTE/PATH/TO/publish-ios-phone-app
+   python3 "$SKILL_DIR/scripts/validate_release.py" \
      --ipa /ABSOLUTE/PATH/App.ipa \
      --manifest https://install.company.example/manifest.plist \
      --expected-bundle-id BUNDLE_ID --expected-build BUILD_NUMBER \

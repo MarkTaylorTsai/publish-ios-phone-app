@@ -1,6 +1,6 @@
 # publish-ios-phone-app
 
-A Codex skill that turns an existing iOS project into a branded, customer-consent Ad Hoc installation portal such as `https://install.company.example`.
+A vendor-neutral agent skill that turns an existing iOS project into a branded, customer-consent Ad Hoc installation portal such as `https://install.company.example`.
 
 Customers can:
 
@@ -12,17 +12,19 @@ Customers can:
 
 The template includes App Store Connect device registration, encrypted UDID storage, signed Profile Service payloads, CMS/challenge validation, serialized Xcode export, OTA manifest generation, LINE-to-Safari guidance, one-click install state, retention cleanup, and release validation.
 
-## Install the skill
+## Use with any agent
 
 ```bash
 git clone https://github.com/MarkTaylorTsai/publish-ios-phone-app.git \
-  "$HOME/.codex/skills/publish-ios-phone-app"
+  /ABSOLUTE/PATH/TO/publish-ios-phone-app
 ```
 
-Restart or reload Codex if the skill is not discovered immediately, then invoke:
+Point the agent's skill loader at that directory, or ask the agent to read `SKILL.md` directly. The workflow does not depend on a vendor-specific runtime; the agent only needs filesystem access, shell execution, HTTPS access, macOS/Xcode, and the required Apple credentials.
+
+Agents that support named skills can invoke:
 
 ```text
-$publish-ios-phone-app Publish this existing iOS project through a branded customer-consent installation link.
+publish-ios-phone-app: Publish this existing iOS project through a branded customer-consent installation link.
 ```
 
 ## Requirements

@@ -118,7 +118,6 @@ class TemplateTests(unittest.TestCase):
             "複製安裝網址",
         ):
             self.assertIn(text, page)
-
     def test_line_user_agent_detection_is_explicit(self):
         self.assertTrue(server.is_line_user_agent("Mozilla/5.0 Mobile LINE/15.1.0"))
         self.assertTrue(server.is_line_user_agent("Mozilla/5.0; Line/14.0.0"))
@@ -143,6 +142,7 @@ class TemplateTests(unittest.TestCase):
             "回到 Safari",
         ):
             self.assertIn(text, page)
+        self.assertNotIn('<div class="steps">', page)
 
     def test_ready_install_button_is_single_use_and_persists_clicked_state(self):
         page = templates.enrollment_page(
@@ -168,6 +168,7 @@ class TemplateTests(unittest.TestCase):
         ):
             self.assertIn(text, page)
         self.assertNotIn("下載後，請照這條路徑操作", page)
+        self.assertNotIn('id="app-install-guide"', page)
         self.assertNotIn("{app_short}", page)
 
     def test_portal_access_token_is_required_and_compared(self):

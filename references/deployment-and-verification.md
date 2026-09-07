@@ -33,6 +33,21 @@ Apple's deployment guide describes HTTPS manifest installation using `itms-servi
 - Rotate `INSTALL_PORTAL_TOKEN` to revoke the shared entry link. Enrollment URLs remain separate random tokens and expire.
 - Back up the last verified IPA/manifest and configuration without copying active secrets into an ordinary repository snapshot.
 
+## Background export gate
+
+The `.mobileconfig` CMS signer and the app's distribution signer are different. A signed profile, an existing IPA, or HTTP 200 from every read-only ASC preflight endpoint does not prove the deployed service can re-export an IPA after enrollment.
+
+Set `export_authentication` in `config.json` (or scaffold with `--export-authentication`):
+
+- `api-key` (default): passes the three `-authenticationKey...` flags to `xcodebuild`. Verify this identity can perform the chosen local or cloud-managed distribution signing, not just read provisioning resources.
+- `xcode-account` (explicit opt-in): omits those flags and uses the signed-in Xcode account of the service's macOS user, retaining `-allowProvisioningUpdates`. Verify that account belongs to the archive/ExportOptions team and has the necessary distribution/cloud-signing access. The team API key still registers devices. This is not an automatic fallback after API-key export fails.
+
+Before inviting a customer, run one staging export with the real archive, ExportOptions, and chosen authentication from the **same macOS user and background service context** used in production. Validate the candidate's bundle/build, signature, Ad Hoc profile, and an already permitted device's inclusion without registering a synthetic UDID. Keep production artifacts unchanged until validation passes. Interactive-shell success does not prove LaunchAgent/keychain/session access. Put the probe script, archive, and output in service-readable deployment storage (for example, the application's private Application Support directory); macOS privacy controls may deny a background process access to a script under Documents even when a terminal can read it. Fix the deployment location/access rather than misdiagnosing that OS error as Apple signing failure. Preserve a redacted result identifying the authentication mode and background context, never raw key paths, tokens, device names, or UDIDs.
+
+For a real enrollment failure, inspect whether `registered_at` is populated and whether the failing stage is registration or export. Preserve the consent and encrypted callback data, repair the failing export identity or environment, then retry that same enrollment once. Stop if the error recurs; do not create duplicate device records or loop credential changes. Keep the last verified IPA intact on every failed export.
+
+Apple describes both authenticated Xcode command-line paths in [Distribute apps in Xcode with cloud signing](https://developer.apple.com/videos/play/wwdc2021/10204/) and the distinction between local and cloud-managed identities in [Cloud-managed certificates](https://developer.apple.com/help/account/certificates/cloud-managed-certificates/).
+
 ## Release checklist
 
 ### Local
@@ -41,6 +56,7 @@ Apple's deployment guide describes HTTPS manifest installation using `itms-servi
 - Release archive succeeds; `CFBundleIdentifier`, `CFBundleShortVersionString`, and `CFBundleVersion` are correct.
 - Portal unit tests and Python compilation pass.
 - Generated profile is CMS-signed and requests only `UDID`, `PRODUCT`, `VERSION`.
+- Real staging export passes from the deployed background-service context with the explicitly selected authentication mode; read-only API checks are recorded separately.
 - `validate_release.py` reports valid bundle/build, codesign, Ad Hoc provision, and expected UDID inclusion.
 
 ### Public

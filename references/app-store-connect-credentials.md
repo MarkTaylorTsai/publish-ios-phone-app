@@ -17,7 +17,7 @@ After access is enabled, an Account Holder or Admin creates the team key:
 1. Open **Users and Access → Integrations → App Store Connect API → Team Keys**.
 2. Select **Generate API Key** or the add button.
 3. Give the key a deployment-specific name.
-4. Select the least-privileged role that supports the intended registration/export operations. `App Manager` is a practical default for this portal; if the team applies a different role policy, verify the provisioning endpoints below rather than assuming the role is sufficient.
+4. Select the least-privileged role that supports the intended API operations. Resource read access and device registration are separate from distribution/cloud signing: an `App Manager` key can pass the checks below yet fail `xcodebuild` cloud signing. Verify the selected export identity with the real background-export gate rather than treating any role name as proof.
 5. Generate the key and immediately download `AuthKey_<KEY_ID>.p8`.
 
 Apple makes the private `.p8` available for download only once and does not retain a recoverable copy. If it has already been downloaded and cannot be located, revoke that key and create a replacement instead of attempting to reconstruct it.
@@ -58,12 +58,12 @@ python3 scripts/verify_asc_credentials.py --env-file /ABSOLUTE/PATH/installer/.e
 
 The verifier creates a short-lived JWT and checks read access to Apps, Devices, Bundle IDs, and Profiles without registering a device or changing Apple resources. All four checks must return HTTP 200 before the portal is exposed. Keep the JSON result as secret-free deployment evidence.
 
-The preflight proves authentication and provisioning-resource visibility. It does not consume a device slot and does not prove that the first registration `POST` will succeed. The first mutation must still be triggered only by a consenting, permitted iPhone enrollment; stop after one 403 or unexplained registration error, correct the role/team/key configuration, and retry that enrollment once.
+The preflight proves authentication and provisioning-resource visibility. It does not consume a device slot and proves neither the first registration `POST` nor Xcode distribution/cloud-signing permission. Device registration and IPA export use separate authentication paths when `export_authentication` is `xcode-account`; the team API key remains required for registration. Complete the [background export gate](deployment-and-verification.md#background-export-gate) before exposing the portal. The first device-registration mutation must still be triggered only by a consenting, permitted iPhone enrollment; stop after one 403 or unexplained registration error, correct the role/team/key configuration, and retry that enrollment once.
 
 ## Troubleshooting
 
 - **401**: check that Issuer ID, Key ID, and `.p8` belong to the same active team key; verify system time and that the key has not been revoked.
 - **403 on Devices, Bundle IDs, or Profiles**: confirm this is a team key, not an individual key, and review the key role. Team-key names and roles cannot be edited after creation; revoke and replace the key when its access level is wrong.
 - **Apps succeeds but provisioning checks fail**: treat the credential as unsuitable for this workflow. Do not infer readiness from `/v1/apps` alone.
-- **Xcode export still prompts or fails after API checks pass**: verify the local distribution certificate, archive team, ExportOptions team ID, and Xcode signing assets separately. App Store Connect API access does not replace the local signing identity.
+- **`Cloud signing permission error` after API checks or registration succeed**: the export identity lacks cloud-signing access; do not report this as failed device registration. Check the explicitly selected export authentication, account permissions, and the archive/ExportOptions team. A local Apple Development identity alone is not a distribution identity. If using local distribution signing, verify the Apple Distribution certificate and its private key are accessible to the service; if using cloud signing, verify that export identity's cloud-managed certificate access. Do not automatically switch identities, elevate key roles, revoke certificates, or recreate an already registered device. See the background export gate for a same-team Xcode-account option.
 - **Multiple providers or teams**: verify that the key's team owns the bundle identifier and matches the archive/ExportOptions team. Do not choose a provider only because it is the first account shown in the browser.

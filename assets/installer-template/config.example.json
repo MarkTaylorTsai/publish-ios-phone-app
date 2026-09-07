@@ -25,6 +25,7 @@
   "archive_path": "/ABSOLUTE/PATH/App.xcarchive",
   "initial_ipa_path": "/ABSOLUTE/PATH/App.ipa",
   "export_options_path": "/ABSOLUTE/PATH/ExportOptions-AdHoc.plist",
+  "export_authentication": "api-key",
   "icon_57_path": "/ABSOLUTE/PATH/icon-57.png",
   "icon_512_path": "/ABSOLUTE/PATH/icon-512.png"
 }

@@ -16,6 +16,8 @@ for raw in (ROOT / ".env").read_text("utf-8").splitlines():
         env.setdefault(key.strip(), value.strip().strip('"').strip("'"))
 
 errors: list[str] = []
+if config.get("export_authentication", "api-key") not in {"api-key", "xcode-account"}:
+    errors.append("export_authentication must be api-key or xcode-account")
 origin = urllib.parse.urlparse(str(config.get("base_url", "")))
 if origin.scheme != "https" or not origin.hostname:
     errors.append("base_url must be a valid HTTPS origin")

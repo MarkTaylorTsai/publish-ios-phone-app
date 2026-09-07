@@ -208,6 +208,38 @@ class JWTTests(unittest.TestCase):
         self.assertFalse(pattern.fullmatch("not-a-device"))
 
 
+class ProvisioningFailureTests(unittest.TestCase):
+    def exercise_failure(self, *, during_export: bool):
+        with tempfile.TemporaryDirectory() as temporary, mock.patch.object(server, "DB_PATH", Path(temporary) / "enrollment.sqlite3"):
+            server.init_db()
+            token = server.create_enrollment()
+            server.update(token, status="collected", consented_at=server.now_iso(), device_label="Fixture iPhone", udid_sha256="0" * 64, udid_encrypted=server.FERNET.encrypt(b"0" * 40))
+            with mock.patch.object(provisioning, "configured", return_value=True), mock.patch.object(provisioning, "register_device", side_effect=None if during_export else RuntimeError("PRIVATE_API_DETAIL")) as register, mock.patch.object(provisioning, "export_ipa", side_effect=RuntimeError("PRIVATE_SIGNING_DETAIL")) as export, mock.patch.object(server.logging, "exception"):
+                server.provision_job(token)
+            record = server.enrollment(token)
+            self.assertEqual(record["status"], "error")
+            self.assertTrue(record["consented_at"])
+            self.assertTrue(record["udid_encrypted"])
+            self.assertNotIn("PRIVATE_", record["public_error"])
+            self.assertIsNone(record["ready_at"])
+            register.assert_called_once()
+            if during_export:
+                export.assert_called_once()
+                self.assertTrue(record["registered_at"])
+                self.assertIn("Apple 裝置已登記", record["public_error"])
+                self.assertIn("簽章／匯出", record["public_error"])
+            else:
+                export.assert_not_called()
+                self.assertIsNone(record["registered_at"])
+                self.assertIn("Apple 裝置登記尚未完成", record["public_error"])
+
+    def test_export_failure_preserves_successful_apple_registration(self):
+        self.exercise_failure(during_export=True)
+
+    def test_registration_failure_is_not_misreported_as_signing_failure(self):
+        self.exercise_failure(during_export=False)
+
+
 class CMSVerificationTests(unittest.TestCase):
     def test_selected_openssl_supports_required_cms_verification_options(self):
         result = subprocess.run(

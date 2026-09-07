@@ -302,6 +302,7 @@ def provision_job(token: str) -> None:
         record = enrollment(token)
         if not record or record["status"] == "ready":
             return
+        stage = "registering"
         try:
             if not provisioning.configured(ENV):
                 update(token, status="collected", public_error="裝置資料已收到，正在等待 Apple 自動簽章服務完成設定。")
@@ -311,12 +312,18 @@ def provision_job(token: str) -> None:
             label = (record.get("device_label") or f"iPhone customer {record['udid_sha256'][:8]}").strip()
             provisioning.register_device(udid, label, ENV)
             update(token, registered_at=now_iso(), status="exporting")
+            stage = "exporting"
             provisioning.export_ipa(CONFIG, ENV, IPA_PATH, udid)
             update(token, status="ready", ready_at=now_iso(), public_error=None, internal_error=None)
             logging.info("provision_ready token=%s", token[:8])
         except Exception as exc:
-            logging.exception("provision_failed token=%s", token[:8])
-            update(token, status="error", public_error="Apple 裝置登記或簽章尚未完成，系統會保留資料供重新處理。", internal_error=str(exc)[-5000:])
+            logging.exception("provision_failed token=%s stage=%s", token[:8], stage)
+            public_error = (
+                "Apple 裝置已登記，但 App 簽章／匯出尚未完成。請管理員檢查簽章服務，原登記資料仍保留。"
+                if stage == "exporting" else
+                "裝置資料已收到，但 Apple 裝置登記尚未完成。請管理員檢查登記服務，原登記資料仍保留。"
+            )
+            update(token, status="error", public_error=public_error, internal_error=str(exc)[-5000:])
 
 
 def retry_pending() -> None:

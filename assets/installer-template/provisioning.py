@@ -129,6 +129,32 @@ def _validate_exported_ipa(ipa_path: Path, config: dict, expected_udid: str) -> 
             raise RuntimeError("export used an enterprise profile instead of Ad Hoc")
 
 
+def export_command(config: dict, env: dict[str, str], export_path: str) -> list[str]:
+    """Select export credentials explicitly; never switch identities on failure."""
+    authentication = config.get("export_authentication", "api-key")
+    if authentication not in {"api-key", "xcode-account"}:
+        raise ValueError("export_authentication must be api-key or xcode-account")
+    command = [
+        "xcodebuild", "-exportArchive",
+        "-archivePath", str(config["archive_path"]),
+        "-exportPath", export_path,
+        "-exportOptionsPlist", str(config["export_options_path"]),
+        "-allowProvisioningUpdates",
+    ]
+    if authentication == "api-key":
+        required = ("ASC_PRIVATE_KEY_PATH", "ASC_KEY_ID", "ASC_ISSUER_ID")
+        if not all(env.get(key) for key in required):
+            raise ValueError("api-key export requires all three ASC credential settings")
+        command += [
+            "-authenticationKeyPath", env["ASC_PRIVATE_KEY_PATH"],
+            "-authenticationKeyID", env["ASC_KEY_ID"],
+            "-authenticationKeyIssuerID", env["ASC_ISSUER_ID"],
+        ]
+    # xcode-account deliberately uses the signed-in Xcode account of the
+    # service's macOS user. The ASC team key still handles device registration.
+    return command
+
+
 def export_ipa(config: dict, env: dict[str, str], output_path: Path, expected_udid: str) -> Path:
     archive = Path(config["archive_path"])
     options = Path(config["export_options_path"])
@@ -136,16 +162,7 @@ def export_ipa(config: dict, env: dict[str, str], output_path: Path, expected_ud
         raise RuntimeError("缺少既有 Xcode archive 或 ExportOptions plist")
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="ios-adhoc-export-") as temp_dir:
-        cmd = [
-            "xcodebuild", "-exportArchive",
-            "-archivePath", str(archive),
-            "-exportPath", temp_dir,
-            "-exportOptionsPlist", str(options),
-            "-allowProvisioningUpdates",
-            "-authenticationKeyPath", env["ASC_PRIVATE_KEY_PATH"],
-            "-authenticationKeyID", env["ASC_KEY_ID"],
-            "-authenticationKeyIssuerID", env["ASC_ISSUER_ID"],
-        ]
+        cmd = export_command(config, env, temp_dir)
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=1200)
         if result.returncode != 0:
             tail = (result.stdout + "\n" + result.stderr)[-5000:]

@@ -78,6 +78,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--archive-path", required=True, type=lambda v: existing_path(v, directory=True))
     parser.add_argument("--ipa-path", required=True, type=existing_path)
     parser.add_argument("--export-options-path", required=True, type=existing_path)
+    parser.add_argument("--export-authentication", choices=("api-key", "xcode-account"), default="api-key")
     parser.add_argument("--icon-57", type=existing_path)
     parser.add_argument("--icon-512", type=existing_path)
     parser.add_argument("--brand-color", default="#E6322F", type=color)
@@ -139,6 +140,7 @@ def main() -> int:
         "archive_path": str(args.archive_path),
         "initial_ipa_path": str(args.ipa_path),
         "export_options_path": str(args.export_options_path),
+        "export_authentication": args.export_authentication,
         "icon_57_path": str(icon_57),
         "icon_512_path": str(icon_512),
         "profile_sign_identity": args.profile_sign_identity,

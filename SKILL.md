@@ -16,7 +16,7 @@ Use this workflow for a known, limited group of customers whose devices may be r
 Inspect the existing project and derive values where possible:
 
 - project type, workspace/project, scheme, configuration, bundle identifier, marketing version, and monotonically increasing build number;
-- an Apple Developer team, signing identity, App Store Connect API issuer/key/private key, and permission to register devices and export an Ad Hoc build;
+- an Apple Developer team, signing identity, App Store Connect **team** API issuer/key/private key, and permission to register devices and export an Ad Hoc build;
 - a branded HTTPS origin such as `https://install.company.example`, its DNS/TLS deployment path, organization/app names, and icons;
 - customer language, enrollment-link lifetime, and UDID retention period.
 
@@ -49,7 +49,7 @@ Run the workflow autonomously from inspection through deployment. Keep progress 
      --start-rate-window-seconds 600
    ```
 
-4. Fill the generated `.env` with App Store Connect API values. Configure one supported CMS-signing mode for the `.mobileconfig`: either a keychain identity in `profile_sign_identity`, or the certificate, chain, and private-key paths in `config.json`. Never commit `.env`, `.p8`, private keys, enrollment databases, or `installer-link.txt`.
+4. Acquire and preflight the App Store Connect credentials before configuring deployment. Read [references/app-store-connect-credentials.md](references/app-store-connect-credentials.md), use a **team key** rather than an individual key because Apple excludes individual keys from provisioning endpoints, and collect the matching Issuer ID, Key ID, and one-time-download `.p8`. Fill the generated `.env`, then run `scripts/verify_asc_credentials.py` against it. Do not defer this check until the first customer registers. Configure one supported CMS-signing mode for the `.mobileconfig`: either a keychain identity in `profile_sign_identity`, or the certificate, chain, and private-key paths in `config.json`. Never commit `.env`, `.p8`, private keys, enrollment databases, or `installer-link.txt`.
 5. Run `scripts/setup.sh` and `scripts/check.sh`. Deploy the service behind a trusted HTTPS certificate at the exact `base_url`; keep the signing/export worker on macOS with Xcode and the distribution certificate available. Read [references/deployment-and-verification.md](references/deployment-and-verification.md) before exposing the origin.
 6. Verify the entire state machine: invite token → customer/device name → explicit consent → signed Profile Service download → CMS/challenge validation → encrypted UDID storage → App Store Connect device registration → serialized Ad Hoc re-export → HTTPS manifest/IPA → one-click `itms-services` install.
 7. Run the release validator, first locally and then against the public manifest/IPA:

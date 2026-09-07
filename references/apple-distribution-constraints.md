@@ -30,6 +30,8 @@ Apple also notes that Developer Mode appears in Settings only after pairing has 
 
 The installer template uses the App Store Connect API to look up and register a device, then invokes Xcode to re-export the existing archive so the resulting provisioning profile includes the device.
 
+This requires a team API key. Apple states that individual API keys cannot use provisioning endpoints, so an individual key may authenticate successfully for other App Store Connect resources yet still fail this workflow. Follow [App Store Connect credentials](app-store-connect-credentials.md) before deployment.
+
 - Apple: [Get started with the App Store Connect API](https://developer.apple.com/help/app-store-connect/get-started/app-store-connect-api/)
 - Apple API: [Register a new device](https://developer.apple.com/documentation/appstoreconnectapi/post-v1-devices)
 - Apple API: [Profiles resource](https://developer.apple.com/documentation/appstoreconnectapi/profiles)

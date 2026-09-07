@@ -31,7 +31,7 @@ publish-ios-phone-app: Publish this existing iOS project through a branded custo
 
 - macOS with Xcode and the project's working iOS archive flow
 - Apple Developer team and an Ad Hoc-compatible distribution certificate
-- App Store Connect API issuer ID, key ID, and private `.p8` key
+- App Store Connect team API issuer ID, key ID, and one-time-download private `.p8` key (individual keys cannot use provisioning endpoints)
 - a trusted HTTPS hostname such as `install.company.example`
 - a permitted physical iPhone for final profile and OTA verification
 
